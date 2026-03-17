@@ -1,0 +1,18 @@
+version: '3'
+
+tasks:
+  api:
+    desc: Run the FastAPI backend server for the agent
+    dir: packages/agent-api
+    cmds:
+      - uvicorn src.main:app --reload
+
+  frontend:
+    desc: Run the Next.js frontend development server
+    dir: packages/frontend
+    cmds:
+      - pnpm dev
+
+  dev:
+    desc: Run all servers concurrently
+    deps: [api, frontend]
