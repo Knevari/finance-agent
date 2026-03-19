@@ -46,7 +46,11 @@ import {
   ArtifactTitle,
   useArtifactContext,
 } from "./artifact";
-import { PluggyConnectWidget } from "../PluggyConnectWidget";
+import dynamic from "next/dynamic";
+
+const PluggyConnectWidget = dynamic(() => import("../PluggyConnectWidget").then((mod) => mod.PluggyConnectWidget), {
+  ssr: false,
+});
 
 function StickyToBottomContent(props: {
   content: ReactNode;

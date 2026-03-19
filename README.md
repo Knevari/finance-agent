@@ -53,8 +53,14 @@ TAVILY_API_KEY="your_tavily_api_key"
 
 ### Running the Application
 
-This project uses `Taskfile` to simplify concurrent startup commands.
-Make sure you have [Task](https://taskfile.dev/) installed.
+This project uses `uv` for python dependency management and `Taskfile` to simplify concurrent startup commands.
+Make sure you have [uv](https://github.com/astral-sh/uv) and [Task](https://taskfile.dev/) installed.
+
+**Setup Backend Environment:**
+```bash
+uv venv
+uv pip install -r requirements.txt
+```
 
 **Running everything together:**
 ```bash

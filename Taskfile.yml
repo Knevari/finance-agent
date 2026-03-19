@@ -5,7 +5,7 @@ tasks:
     desc: Run the FastAPI backend server for the agent
     dir: packages/agent-api
     cmds:
-      - uvicorn src.main:app --reload
+      - uv run uvicorn main:app --reload
 
   frontend:
     desc: Run the Next.js frontend development server

@@ -15,6 +15,11 @@ export type StreamContextType = {
   error: any;
   submit: (input: any, options?: any) => void;
   stop: () => void;
+  getMessagesMetadata: (message: Message) => any;
+  setBranch: (branch: string) => void;
+  patchMetadata: (metadata: any) => void;
+  values: any;
+  interrupt: any;
 };
 
 const StreamContext = createContext<StreamContextType | undefined>(undefined);
@@ -96,17 +101,40 @@ export const StreamProvider: React.FC<{ children: ReactNode }> = ({
             }
             try {
               const data = JSON.parse(dataStr);
-              // LangChain agent stream chunk logic (usually {"messages": [AI Message]} or {"output": "..."})
+
+              // 1. Direct output
               if (data.output) {
                 currentText += data.output;
-              } else if (data.messages && data.messages.length > 0) {
+              }
+              // 2. Standardized messages array (usually one message per chunk)
+              else if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
                 const msg = data.messages[data.messages.length - 1];
-                if (msg.content) {
-                  currentText = msg.content;
+                if (msg.content !== undefined && msg.content !== null) {
+                  if (typeof msg.content === 'string') {
+                    // APPEND for streaming deltas
+                    currentText += msg.content;
+                  } else {
+                    // Replace for complex content (e.g. tool results)
+                    currentText = JSON.stringify(msg.content);
+                  }
                 }
-              } else {
-                // Basic concatenation fallback
-                currentText += JSON.stringify(data);
+              }
+              // 3. Nested node output (legacy/alternative format)
+              else {
+                const nodeKey = Object.keys(data).find(key => data[key] && data[key].messages);
+                if (nodeKey) {
+                  const messages = data[nodeKey].messages;
+                  if (Array.isArray(messages) && messages.length > 0) {
+                    const msg = messages[messages.length - 1];
+                    if (msg.content) {
+                      // For node-based updates, we might want to replace because it's usually the final state of the node
+                      currentText = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
+                    }
+                  }
+                } else if (!data.error) {
+                  // Fallback for unknown shapes
+                  // currentText += JSON.stringify(data); // Disabling this to avoid cluttering UI with JSON
+                }
               }
 
               // Update the AI message
@@ -133,8 +161,37 @@ export const StreamProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, []);
 
+  const getMessagesMetadata = useCallback((_message: Message) => {
+    return {
+      branch: undefined,
+      branchOptions: undefined,
+      firstSeenState: undefined,
+    };
+  }, []);
+
+  const setBranch = useCallback((_branch: string) => {
+    // No-op for now
+  }, []);
+
+  const patchMetadata = useCallback((_metadata: any) => {
+    // No-op for now
+  }, []);
+
   return (
-    <StreamContext.Provider value={{ messages, isLoading, error, submit, stop }}>
+    <StreamContext.Provider
+      value={{
+        messages,
+        isLoading,
+        error,
+        submit,
+        stop,
+        getMessagesMetadata,
+        setBranch,
+        patchMetadata,
+        values: { messages }, // Basic values object
+        interrupt: null, // Basic interrupt state
+      }}
+    >
       {children}
     </StreamContext.Provider>
   );

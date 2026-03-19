@@ -3,7 +3,7 @@ from langchain_core.runnables import RunnableConfig
 from typing import Any, Dict, List
 
 from src.adapters.pluggy_provider import pluggy_provider
-from src.adapters.sqlalchemy_repository import db_adapter
+from src.dependencies import accounts_repository, transactions_repository
 
 @tool
 def create_connect_token(config: RunnableConfig) -> Dict[str, Any]:
@@ -28,7 +28,7 @@ def get_user_accounts(config: RunnableConfig) -> List[Dict[str, Any]]:
     if not item_id:
         return [{"error": "Missing item_id in runtime configuration. The user may not have finished connecting their bank."}]
         
-    db_accounts = db_adapter.get_accounts_by_item(item_id)
+    db_accounts = accounts_repository.get_accounts_by_item(item_id)
     return [acc.dict() for acc in db_accounts]
 
 @tool
@@ -38,5 +38,5 @@ def get_account_transactions(account_id: str) -> List[Dict[str, Any]]:
     Requires the specific `account_id`.
     Returns a list of transactions.
     """
-    db_transactions = db_adapter.get_transactions_by_account(account_id)
+    db_transactions = transactions_repository.get_transactions_by_account(account_id)
     return [t.dict() for t in db_transactions]

@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useCallback } from 'react';
 import { PluggyConnect } from 'react-pluggy-connect';
 import { Button } from './ui/button';
